@@ -1,7 +1,8 @@
 const gulp = require('gulp');
 const pug = require('gulp-pug');
 
-const sass = require('gulp-sass');
+const sass = require('gulp-sass'); // commonjs 
+
 const rename = require('gulp-rename');
 const sourcemaps = require('gulp-sourcemaps');
 
@@ -57,8 +58,56 @@ function clean() {
 
 // webpack
 function scripts() {
-    return gulp.src('src/scripts/app.js')
-        .pipe(gulpWebpack(webpackConfig, webpack)) 
+    return gulp.src('src/scripts/')
+        .pipe(gulpWebpack({
+            entry: {
+                test1: './src/scripts/test1.js',
+                test2: './src/scripts/test2.js'
+            },
+            output: {
+                filename: '[name].js'
+            },
+            plugins: [
+                new webpack.ProvidePlugin({
+                  $: 'jquery',
+                  jQuery: 'jquery'
+                })
+            ],
+            module: {
+                rules: [
+                  {
+                    test: /\.js$/,
+                    exclude: /node_modules/,
+                    loader: "babel-loader",
+                    query: {
+                        "presets": [
+                            "env"
+                        ]
+                    }
+                  }
+                ]
+            },
+            optimization: {
+                minimize: false,
+                runtimeChunk: {
+                    name: 'common'
+                },
+                splitChunks: {
+                    cacheGroups: {
+                        default: false,
+                        commons: {
+                            test: /node_modules/,
+                            name: "common",
+                            chunks: "initial",
+                            minSize: 1
+                        }
+                    }
+                }
+            },
+            mode: 'development',
+            //mode: 'production'
+        }, webpack)) 
+        // .pipe(rename('bundle.js'))
         .pipe(gulp.dest(paths.scripts.dest));
 }
 
@@ -73,7 +122,8 @@ function watch() {
 // локальный сервер + livereload (встроенный)
 function server() {
     browserSync.init({
-        server: paths.root
+        server: paths.root,
+        open: false
     });
     browserSync.watch(paths.root + '/**/*.*', browserSync.reload);
 }

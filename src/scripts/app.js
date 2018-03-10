@@ -1,3 +1,3 @@
-const slider = require('./common/slider');
 
-slider(); // инициализируем слайдер
+// es6
+const a = 10;
